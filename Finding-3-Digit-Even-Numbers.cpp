@@ -3,28 +3,36 @@ class Solution
 public:
     vector<int> findEvenNumbers(vector<int> &digits)
     {
-        vector<int> ans;
-        sort(digits.begin(), digits.end());
+        set<int> resultSet;
         int n = digits.size();
-        for (int i = 0; i < n; i++)
+        vector<int> count(10, 0);
+
+        for (int digit : digits)
+            count[digit]++;
+
+        for (int i = 1; i < 10; i++)
         {
-            if (digits[i] == 0)
+            if (count[i] == 0)
                 continue;
-            for (int j = 0; j < n; j++)
+            count[i]--;
+
+            for (int j = 0; j < 10; j++)
             {
-                if (i == j)
+                if (count[j] == 0)
                     continue;
-                for (int k = 0; k < n; k++)
+                count[j]--;
+
+                for (int k = 0; k < 10; k += 2)
                 {
-                    if (i == k || j == k)
+                    if (count[k] == 0)
                         continue;
-                    if (digits[k] % 2 == 0)
-                        ans.push_back(digits[i] * 100 + digits[j] * 10 + digits[k]);
+                    resultSet.insert(i * 100 + j * 10 + k);
                 }
+                count[j]++;
             }
+            count[i]++;
         }
-        sort(ans.begin(), ans.end());
-        ans.erase(unique(ans.begin(), ans.end()), ans.end());
-        return ans;
+
+        return vector<int>(resultSet.begin(), resultSet.end());
     }
 };
