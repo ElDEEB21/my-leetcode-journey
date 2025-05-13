@@ -1,0 +1,36 @@
+using ll = long long;
+class Solution
+{
+public:
+    int lengthAfterTransformations(string s, int t)
+    {
+        auto mod_add = [](ll a, ll b)
+        {
+            const ll mod = 1e9 + 7;
+            a = a % mod;
+            b = b % mod;
+            return (((a + b) % mod) + mod) % mod;
+        };
+
+        int nums[26] = {0};
+        for (char ch : s)
+            nums[ch - 'a']++;
+        while (t--)
+        {
+            int cur[26] = {0};
+            for (int j = 0; j < 26; j++)
+            {
+                if (j == 25 && nums[j] > 0)
+                    cur[0] = mod_add(cur[0], nums[j]), cur[1] = mod_add(cur[1], nums[j]);
+                else if (j < 25)
+                    cur[j + 1] = mod_add(cur[j + 1], nums[j]);
+            }
+            for (int j = 0; j < 26; j++)
+                nums[j] = cur[j];
+        }
+        ll cnt = 0;
+        for (int i : nums)
+            cnt = mod_add(cnt, i);
+        return (int)cnt;
+    }
+};
