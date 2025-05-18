@@ -4,50 +4,79 @@ public:
     int colorTheGrid(int m, int n)
     {
         const int MOD = 1e9 + 7;
-        int rows = 0, cols = 0;
-        vector<vector<int>> valid_colors;
+        vector<int> validStates;
+        vector<vector<int>> transitions;
 
-        auto generate_valid_colors = [&](auto &&self, int curr_pos, int last_color, vector<int> &colors) -> void
+        int maxState = pow(3, m);
+        for (int state = 0; state < maxState; state++)
         {
-            if (curr_pos == rows)
+            int curr = state;
+            bool valid = true;
+            int last = -1;
+
+            for (int i = 0; i < m; i++)
             {
-                valid_colors.push_back(colors);
-                return;
+                int color = curr % 3;
+                if (color == last)
+                {
+                    valid = false;
+                    break;
+                }
+                last = color;
+                curr /= 3;
             }
-            for (int color = 0; color < 3; color++)
-                if (color != last_color)
-                    colors[curr_pos] = color, self(self, curr_pos + 1, color, colors);
-        };
 
-        auto is_valid = [&](vector<int> &row1, vector<int> &row2) -> bool
+            if (valid)
+                validStates.push_back(state);
+        }
+
+        int stateCount = validStates.size();
+        transitions.resize(stateCount);
+
+        for (int i = 0; i < stateCount; i++)
         {
-            for (int i = 0; i < rows; i++)
-                if (row1[i] == row2[i])
-                    return false;
-            return true;
-        };
+            for (int j = 0; j < stateCount; j++)
+            {
+                int state1 = validStates[i];
+                int state2 = validStates[j];
+                bool valid = true;
 
-        rows = m;
-        cols = n;
-        valid_colors.clear();
+                for (int k = 0; k < m; k++)
+                {
+                    if ((state1 % 3) == (state2 % 3))
+                    {
+                        valid = false;
+                        break;
+                    }
+                    state1 /= 3;
+                    state2 /= 3;
+                }
 
-        vector<int> colors(m);
-        generate_valid_colors(generate_valid_colors, 0, -1, colors);
+                if (valid)
+                    transitions[i].push_back(j);
+            }
+        }
 
-        vector<vector<long long>> dp(cols + 1, vector<long long>(valid_colors.size(), 0));
+        vector<vector<long long>> dp(n, vector<long long>(stateCount, 0));
+        for (int i = 0; i < stateCount; i++)
+            dp[0][i] = 1;
 
-        for (int state = 0; state < valid_colors.size(); state++)
-            dp[1][state] = 1;
-
-        for (int col = 1; col < cols; col++)
-            for (int prev_state = 0; prev_state < valid_colors.size(); prev_state++)
-                for (int curr_state = 0; curr_state < valid_colors.size(); curr_state++)
-                    if (is_valid(valid_colors[prev_state], valid_colors[curr_state]))
-                        dp[col + 1][curr_state] = (dp[col + 1][curr_state] + dp[col][prev_state]) % MOD;
+        for (int col = 1; col < n; col++)
+        {
+            for (int curr = 0; curr < stateCount; curr++)
+            {
+                for (int prev : transitions[curr])
+                {
+                    dp[col][curr] = (dp[col][curr] + dp[col - 1][prev]) % MOD;
+                }
+            }
+        }
 
         long long result = 0;
-        for (int state = 0; state < valid_colors.size(); state++)
-            result = (result + dp[cols][state]) % MOD;
+        for (int i = 0; i < stateCount; i++)
+        {
+            result = (result + dp[n - 1][i]) % MOD;
+        }
         return result;
     }
 };
